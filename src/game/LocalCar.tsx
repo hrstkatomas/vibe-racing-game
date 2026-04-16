@@ -1,13 +1,17 @@
 import { type MutableRefObject, useLayoutEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { ARENA_HALF, CAR } from "./constants";
+import { ARENA_HALF, CAR, CAR_BODY } from "./constants";
+import { resolveLocalAgainstRemotes } from "./carCollisions";
 import { RCCarMesh } from "./RCCarMesh";
 import { useDrivingKeys } from "./useDrivingKeys";
+import type { RemoteTarget } from "../hooks/useRaceNetwork";
 
 type Props = {
   color: string;
   chassisRef: MutableRefObject<THREE.Group | null>;
+  remoteIds: readonly string[];
+  getRemote: (id: string) => RemoteTarget | undefined;
   sendLocal: (sample: {
     p: [number, number, number];
     q: [number, number, number, number];
@@ -19,7 +23,7 @@ const euler = new THREE.Euler(0, 0, 0, "YXZ");
 const v = new THREE.Vector3();
 const q = new THREE.Quaternion();
 
-export function LocalCar({ color, chassisRef, sendLocal }: Props) {
+export function LocalCar({ color, chassisRef, remoteIds, getRemote, sendLocal }: Props) {
   const read = useDrivingKeys();
   const speedRef = useRef(0);
   const speed = useRef(0);
@@ -54,6 +58,12 @@ export function LocalCar({ color, chassisRef, sendLocal }: Props) {
 
     v.set(0, 0, -1).applyQuaternion(g.quaternion).multiplyScalar(next * dt);
     g.position.add(v);
+
+    if (resolveLocalAgainstRemotes(g.position, remoteIds, getRemote)) {
+      const damp = CAR_BODY.hitSpeedDamp;
+      speed.current *= damp;
+      speedRef.current = speed.current;
+    }
 
     g.position.x = THREE.MathUtils.clamp(g.position.x, -ARENA_HALF, ARENA_HALF);
     g.position.z = THREE.MathUtils.clamp(g.position.z, -ARENA_HALF, ARENA_HALF);
