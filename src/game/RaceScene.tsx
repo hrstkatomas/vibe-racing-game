@@ -10,6 +10,7 @@ import { Track } from "./Track";
 
 export function RaceScene({ net }: { net: RaceNetwork }) {
   const chassisRef = useRef<THREE.Group>(null);
+  const remoteIds = net.remoteIds.filter((id) => (net.playerId ? id !== net.playerId : true));
 
   return (
     <Canvas shadows camera={{ position: [0, 56, 22], fov: 48, near: 0.1, far: 220 }}>
@@ -35,12 +36,16 @@ export function RaceScene({ net }: { net: RaceNetwork }) {
 
       <Track />
 
-      <LocalCar color="#3dff9a" chassisRef={chassisRef} sendLocal={net.sendLocal} />
-      {net.remoteIds
-        .filter((id) => (net.playerId ? id !== net.playerId : true))
-        .map((id) => (
-          <RemoteCar key={id} id={id} net={net} />
-        ))}
+      <LocalCar
+        color="#3dff9a"
+        chassisRef={chassisRef}
+        remoteIds={remoteIds}
+        getRemote={net.getRemote}
+        sendLocal={net.sendLocal}
+      />
+      {remoteIds.map((id) => (
+        <RemoteCar key={id} id={id} net={net} />
+      ))}
 
       <ContactShadows opacity={0.35} scale={90} blur={2.4} far={9} position={[0, 0.01, 0]} />
 
