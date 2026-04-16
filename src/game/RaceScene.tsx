@@ -13,7 +13,7 @@ export function RaceScene({ net }: { net: RaceNetwork }) {
   const remoteIds = net.remoteIds.filter((id) => (net.playerId ? id !== net.playerId : true));
 
   return (
-    <Canvas shadows camera={{ position: [0, 56, 22], fov: 48, near: 0.1, far: 220 }}>
+    <Canvas shadows camera={{ position: [0, 54, 36], fov: 48, near: 0.1, far: 220 }}>
       <color attach="background" args={["#070a10"]} />
       <fog attach="fog" args={["#070a10", 35, 120]} />
 

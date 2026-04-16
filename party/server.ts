@@ -22,11 +22,18 @@ type LeavePayload = { type: "leave"; id: string };
 
 type ServerMessage = WelcomePayload | JoinPayload | LeavePayload | SyncPayload;
 
-const defaultSpawn = (): Vec3 => [
-  (Math.random() - 0.5) * 24,
-  0.35,
-  (Math.random() - 0.5) * 24,
-];
+/** Matches `CIRCUIT` in src/game/constants.ts — rectangular loop spawn. */
+const CIRCUIT = { innerHalfX: 8, innerHalfZ: 12, outerHalfX: 15, outerHalfZ: 24 };
+
+const defaultSpawn = (): Vec3 => {
+  const { innerHalfX: ix, innerHalfZ: iz, outerHalfX: ox, outerHalfZ: oz } = CIRCUIT;
+  for (let i = 0; i < 40; i++) {
+    const x = (Math.random() * 2 - 1) * ox;
+    const z = (Math.random() * 2 - 1) * oz;
+    if (Math.abs(x) >= ix || Math.abs(z) >= iz) return [x, 0.35, z];
+  }
+  return [ox * 0.82, 0.35, 0];
+};
 
 const defaultQuat = (): Quat => [0, 0, 0, 1];
 

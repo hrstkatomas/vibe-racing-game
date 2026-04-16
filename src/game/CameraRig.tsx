@@ -2,8 +2,8 @@ import { useLayoutEffect } from "react";
 import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
-/** Fixed broadcast-style view above the track center. */
-const POSITION = new THREE.Vector3(0, 56, 22);
+/** Fixed broadcast-style view above the small circuit. */
+const POSITION = new THREE.Vector3(0, 54, 36);
 
 export function CameraRig() {
   const { camera } = useThree();

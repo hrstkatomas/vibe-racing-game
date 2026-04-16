@@ -1,7 +1,7 @@
 import { type MutableRefObject, useLayoutEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { ARENA_HALF, CAR, CAR_BODY } from "./constants";
+import { CAR, CAR_BODY, clampToCircuit, randomTrackPosition } from "./constants";
 import { resolveLocalAgainstRemotes } from "./carCollisions";
 import { RCCarMesh } from "./RCCarMesh";
 import { useDrivingKeys } from "./useDrivingKeys";
@@ -31,7 +31,8 @@ export function LocalCar({ color, chassisRef, remoteIds, getRemote, sendLocal }:
   useLayoutEffect(() => {
     const g = chassisRef.current;
     if (!g) return;
-    g.position.set((Math.random() - 0.5) * 18, 0.35, (Math.random() - 0.5) * 18);
+    const sp = randomTrackPosition();
+    g.position.set(sp.x, 0.35, sp.z);
     g.quaternion.identity();
   }, [chassisRef]);
 
@@ -65,8 +66,9 @@ export function LocalCar({ color, chassisRef, remoteIds, getRemote, sendLocal }:
       speedRef.current = speed.current;
     }
 
-    g.position.x = THREE.MathUtils.clamp(g.position.x, -ARENA_HALF, ARENA_HALF);
-    g.position.z = THREE.MathUtils.clamp(g.position.z, -ARENA_HALF, ARENA_HALF);
+    const c = clampToCircuit(g.position.x, g.position.z);
+    g.position.x = c.x;
+    g.position.z = c.z;
 
     q.copy(g.quaternion);
     sendLocal({
