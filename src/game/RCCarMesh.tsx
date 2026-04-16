@@ -61,8 +61,9 @@ export function RCCarMesh({ color, speedRef }: Props) {
     envMapIntensity: 1.05,
   } as const;
 
+  /* Physics forward is local −Z; mesh was authored with nose at +Z — flip 180° so steering matches travel. */
   return (
-    <group>
+    <group rotation={[0, Math.PI, 0]}>
       {/* Lower tub — wider at rear like a pan car */}
       <RoundedBox
         args={[1.16, 0.2, 1.92]}
