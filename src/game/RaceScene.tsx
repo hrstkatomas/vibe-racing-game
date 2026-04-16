@@ -12,7 +12,7 @@ export function RaceScene({ net }: { net: RaceNetwork }) {
   const chassisRef = useRef<THREE.Group>(null);
 
   return (
-    <Canvas shadows camera={{ position: [0, 10, 16], fov: 55, near: 0.1, far: 220 }}>
+    <Canvas shadows camera={{ position: [0, 56, 22], fov: 48, near: 0.1, far: 220 }}>
       <color attach="background" args={["#070a10"]} />
       <fog attach="fog" args={["#070a10", 35, 120]} />
 
@@ -44,7 +44,7 @@ export function RaceScene({ net }: { net: RaceNetwork }) {
 
       <ContactShadows opacity={0.35} scale={90} blur={2.4} far={9} position={[0, 0.01, 0]} />
 
-      <CameraRig target={chassisRef} />
+      <CameraRig />
     </Canvas>
   );
 }

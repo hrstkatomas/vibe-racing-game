@@ -40,7 +40,7 @@ export function LocalCar({ color, chassisRef, sendLocal }: Props) {
 
     const turnFactor = THREE.MathUtils.clamp(Math.abs(s) / CAR.maxSpeed, CAR.minTurnSpeed, 1);
     euler.setFromQuaternion(g.quaternion, "YXZ");
-    euler.y += (-steer * CAR.turn * turnFactor) * dt;
+    euler.y += (steer * CAR.turn * turnFactor) * dt;
     g.quaternion.setFromEuler(euler);
 
     const accel =
