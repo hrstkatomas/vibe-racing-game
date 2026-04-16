@@ -3,15 +3,22 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { CAR, CAR_BODY, clampToCircuit, randomTrackPosition } from "./constants";
 import { resolveLocalAgainstRemotes } from "./carCollisions";
+import { CarPlayerLabel } from "./CarPlayerLabel";
+import type { LapHudRef } from "./LapHud";
+import { clearOfFinishLine, detectFinishCross } from "./lapTiming";
 import { RCCarMesh } from "./RCCarMesh";
 import { useDrivingKeys } from "./useDrivingKeys";
 import type { RemoteTarget } from "../hooks/useRaceNetwork";
 
+const MIN_LAP_MS = 1800;
+
 type Props = {
   color: string;
+  playerId: string | null;
   chassisRef: MutableRefObject<THREE.Group | null>;
   remoteIds: readonly string[];
   getRemote: (id: string) => RemoteTarget | undefined;
+  lapHudRef: MutableRefObject<LapHudRef>;
   sendLocal: (sample: {
     p: [number, number, number];
     q: [number, number, number, number];
@@ -22,11 +29,14 @@ type Props = {
 const euler = new THREE.Euler(0, 0, 0, "YXZ");
 const v = new THREE.Vector3();
 const q = new THREE.Quaternion();
+const fwd = new THREE.Vector3();
 
-export function LocalCar({ color, chassisRef, remoteIds, getRemote, sendLocal }: Props) {
+export function LocalCar({ color, playerId, chassisRef, remoteIds, getRemote, lapHudRef, sendLocal }: Props) {
   const read = useDrivingKeys();
   const speedRef = useRef(0);
   const speed = useRef(0);
+  const prevXZ = useRef<{ x: number; z: number } | null>(null);
+  const linePrimed = useRef(false);
 
   useLayoutEffect(() => {
     const g = chassisRef.current;
@@ -34,7 +44,13 @@ export function LocalCar({ color, chassisRef, remoteIds, getRemote, sendLocal }:
     const sp = randomTrackPosition();
     g.position.set(sp.x, 0.35, sp.z);
     g.quaternion.identity();
-  }, [chassisRef]);
+    const now = performance.now();
+    lapHudRef.current.completedLaps = 0;
+    lapHudRef.current.lapStartMs = now;
+    lapHudRef.current.lastLapMs = null;
+    prevXZ.current = null;
+    linePrimed.current = false;
+  }, [chassisRef, lapHudRef]);
 
   useFrame((_, dt) => {
     const g = chassisRef.current;
@@ -70,6 +86,27 @@ export function LocalCar({ color, chassisRef, remoteIds, getRemote, sendLocal }:
     g.position.x = c.x;
     g.position.z = c.z;
 
+    const px = g.position.x;
+    const pz = g.position.z;
+    if (clearOfFinishLine(px)) linePrimed.current = true;
+
+    fwd.set(0, 0, -1).applyQuaternion(g.quaternion);
+    const prev = prevXZ.current;
+    if (prev) {
+      const cross = detectFinishCross(prev, { x: px, z: pz }, fwd.x);
+      if (linePrimed.current && cross === "count") {
+        const now = performance.now();
+        const elapsed = now - lapHudRef.current.lapStartMs;
+        if (elapsed >= MIN_LAP_MS) {
+          lapHudRef.current.lastLapMs = elapsed;
+          lapHudRef.current.completedLaps += 1;
+          lapHudRef.current.lapStartMs = now;
+          linePrimed.current = false;
+        }
+      }
+    }
+    prevXZ.current = { x: px, z: pz };
+
     q.copy(g.quaternion);
     sendLocal({
       p: g.position.toArray() as [number, number, number],
@@ -81,6 +118,7 @@ export function LocalCar({ color, chassisRef, remoteIds, getRemote, sendLocal }:
   return (
     <group ref={chassisRef}>
       <RCCarMesh color={color} speedRef={speedRef} />
+      <CarPlayerLabel playerId={playerId ?? "…"} />
     </group>
   );
 }

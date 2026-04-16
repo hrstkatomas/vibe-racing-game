@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import { CIRCUIT } from "./constants";
+import { START_FINISH } from "./lapTiming";
 
 const wallH = 1.25;
 const t = 1.1;
@@ -58,7 +59,7 @@ export function Track() {
       <Wall position={[-ox - t / 2, wallH / 2, 0]} size={[t, wallH, oz * 2 + t * 2]} />
 
       {/* Start/finish on south straight */}
-      <mesh position={[0, 0.045, -iz - (oz - iz) * 0.35]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={[0, 0.045, START_FINISH.zCenter]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[2.8, 0.45]} />
         <meshStandardMaterial color="#f5f5f5" roughness={0.35} emissive="#ffffff" emissiveIntensity={0.06} />
       </mesh>

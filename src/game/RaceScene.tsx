@@ -4,12 +4,18 @@ import { useRef } from "react";
 import * as THREE from "three";
 import type { RaceNetwork } from "../hooks/useRaceNetwork";
 import { CameraRig } from "./CameraRig";
+import { LapHud, type LapHudRef } from "./LapHud";
 import { LocalCar } from "./LocalCar";
 import { RemoteCar } from "./RemoteCar";
 import { Track } from "./Track";
 
 export function RaceScene({ net }: { net: RaceNetwork }) {
   const chassisRef = useRef<THREE.Group>(null);
+  const lapHudRef = useRef<LapHudRef>({
+    completedLaps: 0,
+    lapStartMs: typeof performance !== "undefined" ? performance.now() : 0,
+    lastLapMs: null,
+  });
   const remoteIds = net.remoteIds.filter((id) => (net.playerId ? id !== net.playerId : true));
 
   return (
@@ -38,11 +44,16 @@ export function RaceScene({ net }: { net: RaceNetwork }) {
 
       <LocalCar
         color="#3dff9a"
+        playerId={net.playerId}
         chassisRef={chassisRef}
         remoteIds={remoteIds}
         getRemote={net.getRemote}
+        lapHudRef={lapHudRef}
         sendLocal={net.sendLocal}
       />
+
+      <LapHud stateRef={lapHudRef} />
+
       {remoteIds.map((id) => (
         <RemoteCar key={id} id={id} net={net} />
       ))}
