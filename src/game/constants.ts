@@ -9,11 +9,11 @@ export const CIRCUIT = {
 } as const;
 
 export const CAR = {
-  maxSpeed: 16,
-  accel: 28,
-  brake: 38,
-  drag: 1.35,
-  turn: 2.85,
+  maxSpeed: 32,
+  accel: 56,
+  brake: 76,
+  drag: 2.7,
+  turn: 5.7,
   minTurnSpeed: 0.35,
 };
 
